@@ -80,7 +80,7 @@ def booleanCompare(input1,input2):
             lessThan = False
     return lessThan
 
-class Neuron():
+class Neuron(object):
     def __init__(self,rate,sigmoid,inputs):
         self.rate = rate
         self.weights = numpy.random.uniform(-1.0,1.0,size=inputs)
@@ -128,7 +128,7 @@ class Neuron():
     def get_weights(self):
         return self.weights
 
-class Network():
+class Network(object):
     def __init__(self,rate,sigmoid,hidden,examples,variables):
         self.rate = rate
         self.sigmoid = sigmoid

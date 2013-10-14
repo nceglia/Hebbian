@@ -5,13 +5,13 @@ import math
 
 def main():
     for rate in range(1,11):
-    	for sigmoid in range(3):
+    	for sigmoid in range(1,4):
     		for hidden in range(10):
     			for variables in range(5):
     				print "Rate:",str(float(rate)/10.0),\
-    				"Sigmoid:",sigmoid,"Hidden:",hidden,"Variables:",variables,"Examples:",str(variables*25) 
+    				"Sigmoid:",sigmoid,"Hidden:",hidden,"Variables:",variables,"Examples:",str(int(math.pow(2,variables))*50)
     				call(['python','../src/python/HebbianNetwork.py','--rate',str(float(rate)/10.0),\
     					'--sigmoid',str(sigmoid),'--hidden',str(hidden),'--variables',str(variables),\
-    					'--examples',str(variables*25)])
+    					'--examples',str(int(math.pow(2,variables))*50)])
 if __name__=="__main__":
     main()
