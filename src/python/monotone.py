@@ -22,7 +22,35 @@ def test_tone2(table):
         previous = var
     return monotone
 
+def booleanCompare(input1,input2):
+    lessThan = True
+    for digit1,digit2 in zip(input1,input2):
+        if digit1 > digit2:
+            lessThan = False
+    return lessThan
+
 def monotone(table):
+    monotone = True
+    for i in range(len(table)):
+        for j in range(i+1,len(table)):
+            first_number = []
+            second_number = []
+            binary = str(bin(i).lstrip('0b'))
+            for k in range(variables-len(binary)):
+                binary = '0'+binary
+            for index in range(len(binary)):
+                first_number.append(int(binary[index]))
+            binary = str(bin(j).lstrip('0b'))
+            for k in range(variables-len(binary)):
+                binary = '0'+binary
+            for index in range(len(binary)):
+                second_number.append(int(binary[index]))
+            if booleanCompare(first_number,second_number):
+                if table[i] > table[j]:
+                    monotone = False
+    return monotone
+
+'''def monotone(table):
     monotone = True
     previous = []
     digits = 2
@@ -45,15 +73,17 @@ def monotone(table):
         if lessThan:
             if table[i-1] > table[i]:
                 monotone = False
-    return monotone
+    return monotone'''
 
+count = 0
 for a in [0,1]:
     for b in [0,1]:
         for c in [0,1]:
             for d in [0,1]:
-                print monotone([a,b,c,d])
+                if monotone([a,b,c,d]):
+                    count += 1
+print count
 
-exit(0)
 count1 = 0
 count2 = 0
 count3 = 0
@@ -68,14 +98,7 @@ for a0 in [0,1]:
                             for a7 in [0,1]:
                                 total +=1
                                 truth = [a0,a1,a2,a3,a4,a5,a6,a7]
-                                if test_tonicity(truth):
-                                    count1+=1
-                                if test_tone2(truth):
-                                    count2+=1
                                 if monotone(truth):
                                     count3+=1
-                                    print truth
-print count1
-print count2
 print count3
 print total

@@ -272,6 +272,7 @@ class HebbianBoolean():
         #perform one epoch
         for num, example in enumerate(self.training):
             #print '\tExample', num
+            print example
             activation = compute(example,self.weights)
             for i, weight in enumerate(self.weights):
                 delta = self.rate + activation * float(example[i])
