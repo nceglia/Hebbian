@@ -39,12 +39,12 @@ class XOR():
 
 class BOOLEAN():
     def __init__(self,examples,variables):
-        self.number = examples
         self.variables = variables            
+        self.examples = examples
 
     def load_training(self):
         inputs = []
-        for i in range(self.number):
+        for i in range(self.examples):
             example = []
             for i in range(self.variables):
                 a = randint(-1,1)
@@ -52,6 +52,7 @@ class BOOLEAN():
                     a = randint(-1,1)
                 example.append(a)
             example.append(1)
+            
             inputs.append(example)
         return inputs
         

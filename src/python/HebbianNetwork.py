@@ -14,7 +14,7 @@ def sigmoid(value):
         if value > 0:
             sig_output = 1.0
         else:
-            sig_output = 0.0
+            sig_output = 0.0 
     return sig_output
 
 def weights_fxn(value):
@@ -40,7 +40,7 @@ def truth_tables(variables):
 
 def monotone(table, variables):
     monotone = True
-    for i in range(len(table)):
+    for i in range(len(table)): 
         for j in range(i+1,len(table)):
             first_number = []
             second_number = []
@@ -87,10 +87,17 @@ class Neuron(object):
         self.sigmoid = sigmoid
         self.inputs = inputs
 
+    def threshold(self,activation):
+        if activation >= 0.0:
+            return 1.0
+        else:
+            return -1.0
+
     def train(self,example):
         activation = self.compute(example)  
         for i, weight in enumerate(self.weights):
-            delta = self.rate + activation * float(example[i])
+            #delta = self.rate + activation * float(example[i])
+            delta = self.rate * activation * (float(example[i]) - activation * weight)
             if delta != 0.0:
                 weight = weight+delta
                 if self.sigmoid == 1:
@@ -99,17 +106,41 @@ class Neuron(object):
                     self.weights[i] = tanh(weight)
                 elif self.sigmoid == 3:
                     self.weights[i] = weights_sqrt(weight)
-        if activation >= 0.0:
-            activation = 1.0
-        else:
-            activation = -1.0
+                elif self.sigmoid == 0:
+                    self.weights[i] = weight
         return activation
 
+    def selective_train(self,example,expected):
+        activation = self.compute(example)
+        train = False  
+        if expected  == -1.0 and activation < 0.0:
+            train = True
+        if expected  == 1.0 and activation >= 0.0:
+            train = True
+        if train:
+            for i, weight in enumerate(self.weights):
+                #delta = self.rate + activation * float(example[i])
+                delta = self.rate * activation * (float(example[i]) - activation * weight)
+                if delta != 0.0:
+                    weight = weight+delta
+                    if self.sigmoid == 1:
+                        self.weights[i] = weights_fxn(weight)
+                    elif self.sigmoid == 2:
+                        self.weights[i] = tanh(weight)
+                    elif self.sigmoid == 3:
+                        self.weights[i] = weights_sqrt(weight)
+                    elif self.sigmoid == 0:
+                        self.weights[i] = weight
+        return activation        
+
     def clamp(self,example,clamp):
-        if clamp == 0.0:
+        if clamp >= 0.0:
+            clamp = 1.0
+        else:
             clamp = -1.0
         for i, weight in enumerate(self.weights):
-            delta = self.rate + clamp * float(example[i])
+            #delta = self.rate + clamp * float(example[i])
+            delta = self.rate * clamp * (float(example[i]) - clamp * weight)
             if delta != 0.0:
                 weight = weight+delta
                 if self.sigmoid == 1:
@@ -118,6 +149,8 @@ class Neuron(object):
                     self.weights[i] = tanh(weight)
                 elif self.sigmoid == 3:
                     self.weights[i] = weights_sqrt(weight)
+                elif self.sigmoid == 0:
+                    self.weights[i] = weight
 
     def compute(self,inputs):
         activation = 0.0
@@ -129,19 +162,23 @@ class Neuron(object):
         return self.weights
 
 class Network(object):
-    def __init__(self,rate,sigmoid,hidden,examples,variables):
+    def __init__(self,rate,sigmoid,hidden,examples,variables,layers,algorithm):
         self.rate = rate
         self.sigmoid = sigmoid
         self.inputs = variables
         self.vis_layer = []
+        self.hidden_layers = []
         self.hidden = hidden
         self.variables = variables
-        data = BOOLEAN(examples,self.variables)
-        #print 'Loading {0} Var Boolean Data...'.format(self.variables)
-        self.training = data.load_training()
-        #print 'Finished Loading'
+        self.data = BOOLEAN(examples,self.variables)
+        self.layers = layers-1
+        self.algorithm = algorithm
         for i in range(self.hidden):
             self.vis_layer.append(Neuron(self.rate,self.sigmoid,self.inputs+1))
+        for layer in range(self.layers):
+            self.hidden_layers.append([])
+            for i in range(self.hidden):
+                self.hidden_layers[layer].append(Neuron(self.rate,self.sigmoid,self.hidden+1))
         if self.hidden > 0:
             self.output_neuron = Neuron(self.rate,self.sigmoid,self.hidden+1)
         else:
@@ -180,6 +217,7 @@ class Network(object):
 
 
     def train(self,table):
+        self.training = self.data.load_training()
         for num, example in enumerate(self.training):
             self.activations = []
             if self.hidden > 0:
@@ -187,17 +225,32 @@ class Network(object):
                     output = self.vis_layer[i].train(example)
                     self.activations.append(output)
                 self.activations.append(1.0) #bias term
-                self.output_neuron.clamp(self.activations,table[self.index(example)])
-                #self.output_neuron.train(self.activations)
+                for layer in range(self.layers):
+                    hidden_activations = []
+                    for i in range(self.hidden):
+                        hidden_activations.append(self.hidden_layers[layer][i].train(self.activations))
+                    hidden_activations.append(1.0)
+                    self.activations = hidden_activations
+                if self.algorithm == 0:
+                    self.output_neuron.clamp(self.activations,table[self.index(example)])
+                if self.algorithm == 1:
+                    self.output_neuron.selective_train(self.activations,table[self.index(example)])
+                if self.algorithm == 2:
+                    self.output_neuron.train(self.activations)
             else:
-                #print table[self.index(example)]
-                self.output_neuron.clamp(example,table[self.index(example)])
-                #self.output_neuron.train(example)
-        learned_table = self.truthtable()
-        learned = True
-        for i in range(int(math.pow(2,self.variables))):
-            if learned_table[i] != table[i]:
-                learned = False
+                if self.algorithm == 0:
+                    self.output_neuron.clamp(example,table[self.index(example)])
+                if self.algorithm == 1:
+                    self.output_neuron.train(example)
+                if self.algorithm == 2:
+                    self.output_neuron.selective_train(example,table[self.index(example)])
+            learned_table = self.truthtable()
+            learned = True
+            for i in range(int(math.pow(2,self.variables))):
+                if learned_table[i] != table[i]:
+                    learned = False
+            if learned == True:
+                break
         return learned
 
     def truthtable(self):
@@ -234,39 +287,46 @@ class Network(object):
         return monotone
 
 
+def run(rate,sigmoid,hidden,examples,variables,layers,algorithm):
+    functions = []
+    example = 0
+    monotone_fxns = 0
+    previous = 0
+    tables = truth_tables(variables)
+    #tables = monotone_truth_tables(variables)
+    not_learned = ""
+    for i in range(len(tables)):
+        print "Learning", tables[i],
+        example+=1
+        learned = False
+        tries = 0
+        while not learned and tries < 5000:
+            tries += 1
+            model = Network(rate,sigmoid,hidden,examples,variables,layers,algorithm)
+            learned = model.train(tables[i])
+        if learned:
+            print "Learned"
+            monotone = model.monotone(tables[i])
+            functions.append(bit_repr(tables[i]))
+            if monotone:
+                monotone_fxns += 1
+        else:
+            not_learned = not_learned+str(i)+","
+            print "Not Learned"
+    return len(functions), monotone_fxns, not_learned
+
 def main():
     parser = argparse.ArgumentParser(prog="Hebbian Network")
     parser.add_argument("--rate",type=float)
     parser.add_argument("--sigmoid",type=int)
-    parser.add_argument("--models",type=int)
     parser.add_argument("--examples",type=int)
     parser.add_argument("--hidden",type=int)
     parser.add_argument("--variables",type=int)
+    parser.add_argument("--layers",type=int)
+    parser.add_argument("--algorithm",type=int)
     args = parser.parse_args()
-    functions = []
-    examples = 0
-    monotone_fxns = 0
-    previous = 0
-    tables = monotone_truth_tables(args.variables)
-    for i in range(len(tables)):
-        examples+=1
-        learned = False
-        tries = 0
-        while not learned and tries < 10000:
-            tries += 1
-            model = Network(args.rate,args.sigmoid,args.hidden,args.examples,args.variables)
-            learned = model.train(tables[i])
-        if learned:
-            monotone = model.monotone(tables[i])
-            functions.append(bit_repr(tables[i]))
-            print len(functions), "functions learned.", tables[i], "took",tries, "tries."
-            if monotone:
-                monotone_fxns += 1
-        else:
-            learned_table = model.truthtable()
-            print tables[i]," could not be learned."
-        
-    print monotone_fxns, "Unique Monotone Functions Learned"
+    
+    print run(args.rate,args.sigmoid,args.hidden,args.examples,args.variables,args.layers,args.algorithm)
 
 if __name__=="__main__":
     main()
