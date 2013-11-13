@@ -18,7 +18,7 @@ __Boolean Hebbian learning framework__
 ####Example:
 
 <b>
-python HebbianNetwork.py  --rate 0.01 --sigmoid 1 --examples 1000 --hidden 3 --variables 2 --layer 1 --update oja
+python HebbianNetwork.py  --rate 0.01 --sigmoid 1 --examples 1000 --hidden 3 --variables 2 --layer 1 --rule oja
 </b>
 
 ###Models:
