@@ -21,7 +21,7 @@ __Boolean Hebbian learning framework__
 python HebbianNetwork.py  --rate 0.01 --sigmoid 1 --examples 1000 --hidden 3 --variables 2 --layer 1 --rule oja
 </b>
 
-##Tests
+###Tests
 **_HebbianTest_**
 Runs some basic test with unittest and mock library.
 
