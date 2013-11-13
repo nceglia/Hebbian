@@ -8,7 +8,7 @@ __Boolean Hebbian learning framework__
 ####Arguments:
 
 1. **rate**: Learning Rate
-2. **sigmoid**: Fefines how to sigmoid weights, options are 0, 1, 2, 3: see code.
+2. **sigmoid**: Defines how to sigmoid weights, options are 0, 1, 2, 3: see code.
 3. **examples**: Number of random boolean examples to present
 4. **hidden**: Hidden Units, 0 removes hidden layer
 5. **variables**: N variable boolean functions
