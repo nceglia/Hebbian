@@ -14,6 +14,7 @@ __Boolean Hebbian learning framework__
 5. **variables**: N variable boolean functions
 6. **layers**: 1 .. N layers
 7. **rule**: Learning rule can either be "oja" for Oja's rule or "hebbian" for basic Hebb rule.
+8. **dropout**: Edge drop out rate
 
 ####Example:
 
