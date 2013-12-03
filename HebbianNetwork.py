@@ -103,7 +103,18 @@ def boolean_compare(input1, input2):
             less_than = False
     return less_than
 
-def run(rate, sigmoid, hidden, examples, variables, layers, rule):
+def monotone_generator(inputs):
+    variables = [[0],[1]]
+    for i in range(int(inputs)):
+        next_set = []
+        for variable1 in variables:
+            for variable2 in variables:
+                if boolean_compare(variable1,variable2):
+                    next_set.append(variable1+variable2)
+        variables = next_set
+    return variables
+
+def run(rate, sigmoid, hidden, examples, variables, layers, rule, dropout):
     """
     Creates network and trains a model for each boolean function
 
@@ -114,32 +125,32 @@ def run(rate, sigmoid, hidden, examples, variables, layers, rule):
     examples -- number of random boolean examples to present.
     layers -- number of hidden layers 1 to N (int)
     rule -- learning rule, "hebbian" or "oja" (str)
+    dropout -- percentage of edge weights to
 
     prints each function, whether it was able to learn it, and a summary.
     """
     functions = []
     example = 0
     monotone_fxns = 0
-    tables = truth_tables(variables)
-    #tables = monotone_truth_tables(variables)
-
+    #tables = truth_tables(variables)
+    tables = monotone_generator(variables)
     not_learned = ""
     for i in range(len(tables)):
         print "Learning", tables[i],
         example += 1
         learned = False
         tries = 0
-        while not learned and tries < 1000:
+        while not learned and tries < 200000:
             tries += 1
-            model = Network(rate, sigmoid, hidden, examples, variables, layers, rule)
+            model = Network(rate, sigmoid, hidden, examples, variables, layers, rule, dropout)
             learned = model.train(tables[i])
         if learned:
-            print "Learned",
+            print "Learned with {0} models".format(tries)
             functions.append(bit_repr(tables[i]))
             if monotone(tables[i], variables):
                 monotone_fxns += 1
             model.save("models/hebb{0}.txt".format(example))
-            model.test("models/hebb{0}.txt".format(example))
+            #model.test("models/hebb{0}.txt".format(example))
         else:
             not_learned = not_learned+str(i)+","
             print "Not Learned"
@@ -156,16 +167,13 @@ def main():
     parser.add_argument("--variables", type=int)
     parser.add_argument("--layers", type=int)
     parser.add_argument("--rule", type=str)
+    parser.add_argument("--dropout",type=float)
     args = parser.parse_args()
 
-    print run(args.rate, args.sigmoid, args.hidden, args.examples, args.variables, args.layers, args.rule)
+    print run(args.rate, args.sigmoid, args.hidden, args.examples, args.variables, args.layers, args.rule, args.dropout)
 
 if __name__ == "__main__":
     main()
-
-
-
-
 
 
 

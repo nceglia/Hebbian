@@ -5,7 +5,7 @@ from Neuron import Neuron
 
 class Network(object):
     """Network class"""
-    def __init__(self, rate, sigmoid, hidden, examples, variables, layers, rule):
+    def __init__(self, rate, sigmoid, hidden, examples, variables, layers, rule, dropout):
         """
         Feed-Forward Hebbian network for learning boolean functions
         with threshold gates.
@@ -22,7 +22,7 @@ class Network(object):
         """
         self.rate = rate
         self.sigmoid = sigmoid
-        self.inputs = variables
+        self.inputs = variables 
         self.vis_layer = []
         self.hidden_layers = []
         self.hidden = hidden
@@ -30,16 +30,18 @@ class Network(object):
         self.data = BOOLEAN(examples, self.variables)
         self.layers = layers-1
         self.rule = rule
-        for _ in range(self.hidden):
-            self.vis_layer.append(Neuron(self.rate, self.sigmoid, self.inputs+1))
-        for layer in range(self.layers):
+        self.dropout = dropout
+        self.length = int(math.pow(2, self.variables))
+        for _ in xrange(self.hidden):
+            self.vis_layer.append(Neuron(self.rate, self.sigmoid, self.inputs+1, dropout))
+        for layer in xrange(self.layers):
             self.hidden_layers.append([])
-            for _ in range(self.hidden):
-                self.hidden_layers[layer].append(Neuron(self.rate, self.sigmoid, self.hidden+1))
+            for _ in xrange(self.hidden):
+                self.hidden_layers[layer].append(Neuron(self.rate, self.sigmoid, self.hidden+1, dropout))
         if self.hidden > 0:
-            self.output_neuron = Neuron(self.rate, self.sigmoid, self.hidden+1)
+            self.output_neuron = Neuron(self.rate, self.sigmoid, self.hidden+1, dropout)
         else:
-            self.output_neuron = Neuron(self.rate, self.sigmoid, self.inputs+1)
+            self.output_neuron = Neuron(self.rate, self.sigmoid, self.inputs+1, dropout)
 
     @staticmethod
     def threshold(activation):
@@ -66,11 +68,11 @@ class Network(object):
         initializes network to weights in file
         """
         hebbian_weights = open(filename, "r").read().split('\n')
-        for i in range(self.hidden):
+        for i in xrange(self.hidden):
             weights = hebbian_weights[i].split('\t')
             self.vis_layer[i].set_weights(weights)
-        for i in range(self.layers):
-            for j in range(self.hidden):
+        for i in xrange(self.layers):
+            for j in xrange(self.hidden):
                 weights = hebbian_weights[((i+1)*self.hidden)+j].split('\t')
                 self.hidden_layers[i][j].set_weights(weights)
         weights = hebbian_weights[-2].split('\t')
@@ -86,10 +88,10 @@ class Network(object):
         saves current model weights to file
         """
         hebbian_weights = open(filename, "w")
-        for i in range(self.hidden):
+        for i in xrange(self.hidden):
             hebbian_weights.write("\t".join(self.vis_layer[i].get_weights()) + '\n')
-        for i in range(self.layers):
-            for j in range(self.hidden):
+        for i in xrange(self.layers):
+            for j in xrange(self.hidden):
                 hebbian_weights.write("\t".join(self.hidden_layers[i][j].get_weights()) + '\n')
         hebbian_weights.write("\t".join(self.output_neuron.get_weights()) + '\n')
         hebbian_weights.close()
@@ -105,13 +107,13 @@ class Network(object):
         """
         activations = []
         if self.hidden > 0:
-            for i in range(self.hidden):
+            for i in xrange(self.hidden):
                 output = self.vis_layer[i].compute(example)
                 activations.append(output)
             activations.append(1.0)
-            for layer in range(self.layers):
+            for layer in xrange(self.layers):
                 hidden_activations = []
-                for i in range(self.hidden):
+                for i in xrange(self.hidden):
                     hidden_activations.append(self.hidden_layers[layer][i].compute(activations))
                 hidden_activations.append(1.0)
                 activations = hidden_activations
@@ -129,11 +131,11 @@ class Network(object):
 
         returns index in current truthtable for given example.
         """
-        for i in range(int(math.pow(2, self.variables))):
+        for i in xrange(self.length):
             binary = bin(i).lstrip('0b')
-            for i in range(self.variables-len(binary)):
+            for i in xrange(self.variables-len(binary)):
                 binary = '0'+binary
-            for j in range(self.variables):
+            for j in xrange(self.variables):
                 index = True
                 if example[j] == -1:
                     example[j] = 0
@@ -158,13 +160,13 @@ class Network(object):
         for example in training:
             activations = []
             if self.hidden > 0:
-                for i in range(self.hidden):
+                for i in xrange(self.hidden):
                     output = self.vis_layer[i].train(example, self.rule)
                     activations.append(output)
                 activations.append(1.0)
-                for layer in range(self.layers):
+                for layer in xrange(self.layers):
                     hidden_activations = []
-                    for i in range(self.hidden):
+                    for i in xrange(self.hidden):
                         hidden_activations.append(self.hidden_layers[layer][i].train(activations, self.rule))
                     hidden_activations.append(1.0)
                     activations = hidden_activations
@@ -173,7 +175,7 @@ class Network(object):
                 self.output_neuron.clamp(example, table[self.index(example)], self.rule)
             learned_table = self.truthtable()
             learned = True
-            for i in range(int(math.pow(2, self.variables))):
+            for i in xrange(self.length):
                 if learned_table[i] != table[i]:
                     learned = False
             if learned == True:
@@ -183,11 +185,10 @@ class Network(object):
     def truthtable(self):
         """Builds the truth table for the current model and returns it"""
         table = []
-        table_len = int(math.pow(2.0, self.variables))
-        for i in range(table_len):
+        for i in xrange(self.length):
             inputs = []
             binary = bin(i).lstrip('0b')
-            for i in range(len(binary)):
+            for i in xrange(len(binary)):
                 inputs.append(int(binary[i]))
             inputs.append(1)
             table.append(self.compute(inputs))
@@ -199,10 +200,6 @@ class Network(object):
         table = self.truthtable()
         print " .....  Test: Model Computes:", table
 
-    def rerandomize(self):
-        """Randomize a percentage of weights in network"""
-        #randomize a random number of weights
-        pass
 
     def increase_learning(self, factor):
         """Increase the learning rate to by 'factor'"""

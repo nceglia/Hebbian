@@ -1,10 +1,11 @@
 import numpy
 from math import exp
 import math
+import random
 
 class Neuron(object):
     """Neuron class"""
-    def __init__(self, rate, sigmoid, inputs):
+    def __init__(self, rate, sigmoid, inputs, dropout):
         """
         Neuron class constructor
 
@@ -19,6 +20,14 @@ class Neuron(object):
         self.weights = numpy.random.uniform(-1.0, 1.0, size=inputs)
         self.sigmoid = sigmoid
         self.inputs = inputs
+        self.dropout = dropout
+        self.rule_dict = {'hebbian': self.hebb_rule,
+                    'oja': self.oja_rule}
+        self.sigmoid_dict = { 1: Neuron.algebraic_abs,
+                              2: Neuron.tanh,
+                              3: Neuron.algebraic_sqrt,
+                              0: Neuron.no_sigmoid,
+                            }
 
     @staticmethod
     def logistic(value):
@@ -29,10 +38,12 @@ class Neuron(object):
     @staticmethod
     def threshold(activation):
         """Threshold function returns threshold output"""
-        if activation >= 0.0:
+        if activation > 0.0:
             return 1.0
-        else:
+        elif activation < 0.0:
             return -1.0
+        else:
+            return 0.0
 
     @staticmethod
     def algebraic_abs(value):
@@ -50,49 +61,15 @@ class Neuron(object):
         return value / math.sqrt(1.0 + math.pow(value, 2.0))
 
     @staticmethod
-    def sigmoid_select(fxn, value):
-        """
-        Selects sigmoid function to be applied to weights after update rule
+    def no_sigmoid(value):
+        return value
 
-        Keyword arguments:
-        fxn -- function to be selected (int)
-        value -- weight value (float)
+    def hebb_rule(self, activation, example, weight):
+        return self.rate + activation * example
 
-        returns sigmoid of value.
-        """
-        sigmoid_value = 0
-        if fxn == 1:
-            sigmoid_value = Neuron.algebraic_abs(value)
-        elif fxn == 2:
-            sigmoid_value = Neuron.tanh(value)
-        elif fxn == 3:
-            sigmoid_value = Neuron.algebraic_sqrt(value)
-        elif fxn == 0:
-            sigmoid_value = value
-        return sigmoid_value
+    def oja_rule(self, activation, example, weight):
+        return self.rate * activation * (example - activation * weight)
 
-    def algorithm_select(self, algorithm, activation, example, weight):
-        """
-        Selects update rule to calculate change of weight
-
-        Keyword arguments:
-        algorithm -- name of update rule (str)
-        activation -- post synaptic activation of neuron (float)
-        example -- pre synaptic input to neuron (float)
-        weight -- current weight value for input edge (float)
-
-        returns change of weight (delta)
-        """
-        example = float(example)
-        delta  = 0
-        if algorithm == "hebbian":
-            delta = self.rate + activation * example
-        elif algorithm == "oja":
-            delta = self.rate * activation * (example - activation * weight)
-        else:
-            print "Incorrect Weight rule!"
-            exit(0)
-        return delta
 
     def train(self, example, algorithm):
         """
@@ -106,11 +83,13 @@ class Neuron(object):
         """
         activation = self.compute(example)
         for i, weight in enumerate(self.weights):
-            example[i] = float(example[i])
-            delta = self.algorithm_select(algorithm, activation, example[i], weight)
-            if delta != 0.0:
-                weight = weight+delta
-                self.weights[i] = Neuron.sigmoid_select(self.sigmoid, weight)
+            possibility = numpy.random.uniform(-1.0, 1.0, size=1)[0]
+            if possibility < self.dropout:
+                example[i] = float(example[i])
+                delta = self.rule_dict[algorithm](activation, example[i], weight)
+                if delta != 0.0:
+                    weight = weight+delta
+                    self.weights[i] = self.sigmoid_dict[self.sigmoid] (weight)
         return Neuron.threshold(activation)
 
     def clamp(self, example, clamp, algorithm):
@@ -127,10 +106,12 @@ class Neuron(object):
         if clamp == 0.0:
             clamp = -1.0
         for i, weight in enumerate(self.weights):
-            delta = self.algorithm_select(algorithm, clamp, float(example[i]), weight)
-            if delta != 0.0:
-                weight = weight + delta
-                self.weights[i] = Neuron.sigmoid_select(self.sigmoid, weight)
+            possibility = numpy.random.uniform(-1.0, 1.0, size=1)[0]
+            if possibility < self.dropout:
+                delta = self.rule_dict[algorithm](clamp, float(example[i]), weight)
+                if delta != 0.0:
+                    weight = weight + delta
+                    self.weights[i] = self.sigmoid_dict[self.sigmoid] (weight)
 
     def compute(self, inputs):
         """
@@ -160,14 +141,11 @@ class Neuron(object):
             input_weights.append(float(weight))
         self.weights  = input_weights
 
-    def rerandomize(self):
-        """randomizes half of the incoming edge weights between -1 and 1"""
-        pass
-
     def increase_learning(self, factor):
         """Increases the current learning rate by 'factor'"""
+        self.rate = self.rate * factor
         pass
 
-    def noise(self, stddev):
-        """Adds gaussian noise to incoming edge weights with std dev"""
-        pass
+
+
+
