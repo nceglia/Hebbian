@@ -1,4 +1,3 @@
-import numpy
 from math import exp
 import math
 import random
@@ -17,7 +16,9 @@ class Neuron(object):
         returns initialized Neuron object.
         """
         self.rate = rate
-        self.weights = numpy.random.uniform(-1.0, 1.0, size=inputs)
+        self.weights = []
+        for _ in xrange(inputs):
+            self.weights.append(random.uniform(-1.0, 1.0))
         self.sigmoid = sigmoid
         self.inputs = inputs
         self.dropout = dropout
@@ -83,7 +84,7 @@ class Neuron(object):
         """
         activation = self.compute(example)
         for i, weight in enumerate(self.weights):
-            possibility = numpy.random.uniform(-1.0, 1.0, size=1)[0]
+            possibility = random.uniform(-1.0, 1.0)
             if possibility < self.dropout:
                 example[i] = float(example[i])
                 delta = self.rule_dict[algorithm](activation, example[i], weight)
@@ -106,7 +107,7 @@ class Neuron(object):
         if clamp == 0.0:
             clamp = -1.0
         for i, weight in enumerate(self.weights):
-            possibility = numpy.random.uniform(-1.0, 1.0, size=1)[0]
+            possibility = random.uniform(-1.0, 1.0)
             if possibility < self.dropout:
                 delta = self.rule_dict[algorithm](clamp, float(example[i]), weight)
                 if delta != 0.0:

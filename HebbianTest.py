@@ -46,14 +46,14 @@ class NetworkTets(unittest.TestCase):
     def setUp(self):
         pass
 
-    @patch('numpy.random.uniform')
+    @patch('random.uniform')
     def test_compute(self,mock_np_dist):
         mock_np_dist.return_value = [0.5,0.5,0.5]
         model = Network(0.01, 0, 2, 1, 2, 1, "oja", 1.0)
         output = model.compute([-1,-1,-1])
         self.assertEqual(output,0)
 
-    @patch('numpy.random.uniform')
+    @patch('random.uniform')
     def test_truthtable(self,mock_np_dist):
         mock_np_dist.return_value = [1.0,1.0,1.0]
         model = Network(0.01, 0, 2, 1, 2, 1, "oja", 1.0)
