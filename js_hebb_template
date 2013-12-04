@@ -7,8 +7,8 @@
 #$ -q benzene.q
 #$ -P crick.p
 #$ -t 1:%(len_iter_list)d
-#$ -o /home/baldig/projects/genomics/crick/tmp/qsub_dump/%(name)s
-#$ -e /home/baldig/projects/genomics/crick/tmp/qsub_dump/%(name)s
+#$ -o /extra/baldig3/projects/hebbian/qsub_dump/%(name)s
+#$ -e /extra/baldig3/projects/hebbian/qsub_dump/%(name)s
 
 let "TASK_ID=$SGE_TASK_ID - 1"
 

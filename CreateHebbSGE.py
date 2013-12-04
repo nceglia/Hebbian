@@ -21,7 +21,7 @@ layers = sys.argv[3]
 dropout = sys.argv[4]
 rate = sys.argv[5]
 
-content['commands'] = "pypy HebbianNetwork.py --rate {0} --sigmoid 0 --examples 1000 --hidden {1} --variables {2} --layer {3} --rule oja --dropout {4} --table ".format(rate, hidden, variables, layers, dropout)+"${i}"
+content['commands'] = "pypy /home/nceglia/codebase/Hebbian/HebbianNetwork.py --rate {0} --sigmoid 0 --examples 1000 --hidden {1} --variables {2} --layer {3} --rule oja --dropout {4} --table ".format(rate, hidden, variables, layers, dropout)+"${i}"
 if len(sys.argv) > 3:
     content['name'] = sys.argv[-1].rstrip('.sge')
     try:
