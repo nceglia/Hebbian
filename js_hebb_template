@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#$ -S /bin/bash
+#$ -N %(name)s
+#$ -l mem_free=200M
+#$ -l arch=lx24-amd64
+#$ -q benzene.q
+#$ -P crick.p
+#$ -t 1:%(len_iter_list)d
+#$ -o /home/baldig/projects/genomics/crick/tmp/qsub_dump/%(name)s
+#$ -e /home/baldig/projects/genomics/crick/tmp/qsub_dump/%(name)s
+
+let "TASK_ID=$SGE_TASK_ID - 1"
+
+i_ARRAY=('%(iter_list)s')
+
+let "i_INDEX=$TASK_ID %% %(len_iter_list)d"
+i=${i_ARRAY[$i_INDEX]}
+
+source /opt/Modules/init/bash
+source auto/igb-libs/linux/centos/5.x/x86_64/profiles/python_2.7
+
+echo $SGE_O_HOST, hostname = $HOSTNAME, arch = $ARCH
+
+%(commands)s
+

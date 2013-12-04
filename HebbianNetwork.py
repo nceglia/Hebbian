@@ -125,8 +125,7 @@ def run(rate, sigmoid, hidden, examples, variables, layers, rule, dropout):
     examples -- number of random boolean examples to present.
     layers -- number of hidden layers 1 to N (int)
     rule -- learning rule, "hebbian" or "oja" (str)
-    dropout -- percentage of edge weights to
-
+    dropout -- percentage of edge weights to update
     prints each function, whether it was able to learn it, and a summary.
     """
     functions = []
@@ -147,14 +146,30 @@ def run(rate, sigmoid, hidden, examples, variables, layers, rule, dropout):
         if learned:
             print "Learned with {0} models".format(tries)
             functions.append(bit_repr(tables[i]))
-            if monotone(tables[i], variables):
-                monotone_fxns += 1
             model.save("models/hebb{0}.txt".format(example))
             #model.test("models/hebb{0}.txt".format(example))
         else:
             not_learned = not_learned+str(i)+","
             print "Not Learned"
-    return len(functions), monotone_fxns, not_learned
+    return "Learned:", len(functions),"Not Learned", not_learned
+
+def distribute(rate, sigmoid, hidden, examples, variables, layers, rule, dropout, table):
+    example = 0
+    not_learned = ""
+    tables = monotone_generator(variables)
+    print "Learning", tables[table-1],
+    learned = False
+    tries = 0
+    while not learned and tries < 200000:
+        tries += 1
+        model = Network(rate, sigmoid, hidden, examples, variables, layers, rule, dropout)
+        learned = model.train(tables[table-1])
+    if learned:
+        print "Learned with {0} models".format(tries)
+        model.save("hebb{0}.txt".format(table-1))
+    else:
+        print "Not Learned"
+    return
 
 def main():
     """Parses command line args and calls run method"""
@@ -168,9 +183,13 @@ def main():
     parser.add_argument("--layers", type=int)
     parser.add_argument("--rule", type=str)
     parser.add_argument("--dropout",type=float)
+    parser.add_argument("--table",type=int)
     args = parser.parse_args()
 
-    print run(args.rate, args.sigmoid, args.hidden, args.examples, args.variables, args.layers, args.rule, args.dropout)
+    if args.table == 0:
+        print run(args.rate, args.sigmoid, args.hidden, args.examples, args.variables, args.layers, args.rule, args.dropout)
+    else:
+        distribute(args.rate, args.sigmoid, args.hidden, args.examples, args.variables, args.layers, args.rule, args.dropout, args.table)
 
 if __name__ == "__main__":
     main()
