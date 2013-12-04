@@ -33,12 +33,12 @@ Runs some basic test with unittest and mock library.
 ###Data:
   Boolean Class creates a list of random examples for N variable boolean functions.
   
-###SGE
+###SGE:
   Arguments: variables hidden layers dropout rate script_name
   Example:
   <b>python CreateHebbSGE.py 2 3 1 0.5 0.01 2_3_submission</b>
 
-###HebbProfiler
+###HebbProfiler:
   pypy HebbProfiler.py
   Runs 3-5-1 network, and provides profiling statistics
   
