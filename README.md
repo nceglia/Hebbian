@@ -19,7 +19,7 @@ __Boolean Hebbian learning framework__
 ####Example:
 
 <b>
-python HebbianNetwork.py  --rate 0.01 --sigmoid 1 --examples 1000 --hidden 3 --variables 2 --layer 1 --rule oja --dropout 0.5
+pypy HebbianNetwork.py  --rate 0.01 --sigmoid 1 --examples 1000 --hidden 3 --variables 2 --layer 1 --rule oja --dropout 0.5
 </b>
 
 ###Tests
@@ -32,6 +32,15 @@ Runs some basic test with unittest and mock library.
 
 ###Data:
   Boolean Class creates a list of random examples for N variable boolean functions.
+  
+###SGE
+  Arguments: variables hidden layers dropout rate script_name
+  Example:
+  <b>python CreateHebbSGE.py 2 3 1 0.5 0.01 2_3_submission</b>
+
+###HebbProfiler
+  pypy HebbProfiler.py
+  Runs 3-5-1 network, and provides profiling statistics
   
   
   
